@@ -36,7 +36,7 @@ func travisTokenFromGitHubToken(githubAccessToken string, endpoint string) (stri
 
 	// Use a User-Agent that begins with "Travis" to avoid https://github.com/travis-ci/travis-ci/issues/5649
 	// This only seems to a be a problem at travis-ci.org (not .com)
-	request.Header.Set("User-Agent", "Travis")
+	request.Header.Set("User-Agent", "Travis-CI Go client")
 
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
