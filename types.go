@@ -86,3 +86,15 @@ type EnvVars struct {
 
 	EnvVars []EnvVar `json:"env_vars"`
 }
+
+type User struct {
+	APIObject
+
+	ID        int
+	Login     string
+	Name      string
+	GitHubID  int    `json:"github_id"`
+	AvatarURL string `json:"avatar_url"`
+	IsSyncing bool   `json:"is_syncing"`
+	SyncedAt  string `json:"synced_at"`
+}
