@@ -33,7 +33,7 @@ func configPath() (string, error) {
 	return path.Join(currentUser.HomeDir, ".travis"), nil
 }
 
-func readConfig() (config, error) {
+func readTravisConfig() (config, error) {
 	configPath, err := configPath()
 	if err != nil {
 		return config{}, err

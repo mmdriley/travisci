@@ -96,7 +96,7 @@ func (c *Client) configureTokenAndEndpoint() error {
 	}
 
 	// Read config to look for default endpoint and saved token.
-	config, err := readConfig()
+	config, err := readTravisConfig()
 	if err != nil {
 		return errors.Wrap(err, "reading Travis config file")
 	}
