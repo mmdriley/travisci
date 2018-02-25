@@ -32,6 +32,10 @@ type Client struct {
 type Option func(*Client)
 
 func AccessToken(token string) Option {
+	if token == "" {
+		panic(errors.Errorf("empty access token"))
+	}
+
 	return func(c *Client) {
 		c.token = token
 
@@ -41,6 +45,10 @@ func AccessToken(token string) Option {
 }
 
 func GitHubAccessToken(token string) Option {
+	if token == "" {
+		panic(errors.Errorf("empty GitHub access token"))
+	}
+
 	return func(c *Client) {
 		c.githubToken = token
 
@@ -50,6 +58,10 @@ func GitHubAccessToken(token string) Option {
 }
 
 func Endpoint(endpoint string) Option {
+	if endpoint == "" {
+		panic(errors.Errorf("empty endpoint"))
+	}
+
 	return func(c *Client) {
 		c.endpoint = endpoint
 	}
