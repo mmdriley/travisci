@@ -18,15 +18,6 @@ type githubAuthResponse struct {
 	AccessToken string `json:"access_token"`
 }
 
-func mustJSONMarshal(v interface{}) []byte {
-	bytes, err := json.Marshal(v)
-	if err != nil {
-		panic(err)
-	}
-
-	return bytes
-}
-
 func travisTokenFromGitHubToken(githubAccessToken string, endpoint string) (string, error) {
 	requestBody := githubAuthRequest{GitHubToken: githubAccessToken}
 
