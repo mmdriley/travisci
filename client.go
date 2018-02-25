@@ -53,6 +53,9 @@ func AccessToken(token string) Option {
 func GitHubAccessToken(token string) Option {
 	return func(c *Client) {
 		c.githubToken = token
+
+		// Set token so we know it's configured. This value will be overwritten.
+		c.token = "github"
 	}
 }
 
@@ -86,36 +89,55 @@ func travisTokenFromGitHubToken(githubAccessToken string, endpoint string) (stri
 	return "", nil
 }
 
-func defaultEndpoint(config config) string {
-	// Use $TRAVIS_ENDPOINT if defined
-	if endpoint := os.Getenv("TRAVIS_ENDPOINT"); endpoint != "" {
-		return endpoint
+// Set token and endpoint the way travis.rb would:
+// Endpoint: first env var, then config, then fall back to travis-ci.org
+// Token: first env var, then config for chosen endpoint
+func (c *Client) configureTokenAndEndpoint() error {
+	if c.token != "" && c.endpoint != "" {
+		// Already configured explicitly.
+		return nil
 	}
 
-	// Use default endpoint from config.yml
-	if config.DefaultEndpoint != "" {
-		return config.DefaultEndpoint
+	// Try environment variables.
+	if c.token == "" {
+		c.token = os.Getenv("TRAVIS_TOKEN")
+	}
+	if c.endpoint == "" {
+		c.endpoint = os.Getenv("TRAVIS_ENDPOINT")
 	}
 
-	// Absent any other information, use the .org endpoint.
-	return orgURI
-}
-
-func storedToken(config config, endpoint string) string {
-	// Use $TRAVIS_TOKEN if defined
-	if token := os.Getenv("TRAVIS_TOKEN"); token != "" {
-		return token
+	// Exit now if we're done and don't need to read config.
+	if c.token != "" && c.endpoint != "" {
+		return nil
 	}
 
-	// Read token for the given endpoint from config.yml
-	if endpointConfig, ok := config.Endpoints[endpoint]; ok {
-		if endpointConfig.AccessToken != "" {
-			return endpointConfig.AccessToken
+	// Read config to look for default endpoint and saved token.
+	config, err := readConfig()
+	if err != nil {
+		return errors.Wrap(err, "reading Travis config file")
+	}
+
+	if c.endpoint == "" {
+		c.endpoint = config.DefaultEndpoint
+	}
+
+	// If we don't have an endpoint by now, fall back to travis-ci.org.
+	// We need to choose an endpoint before looking for a saved token.
+	if c.endpoint == "" {
+		c.endpoint = orgURI
+	}
+
+	if c.token == "" {
+		if endpointConfig, ok := config.Endpoints[c.endpoint]; ok {
+			c.endpoint = endpointConfig.AccessToken
 		}
 	}
 
-	// No sane default
-	return ""
+	if c.token == "" {
+		return errors.New("no access token provided")
+	}
+
+	return nil
 }
 
 func NewClient(options ...Option) interface{} {
@@ -124,36 +146,19 @@ func NewClient(options ...Option) interface{} {
 		option(&c)
 	}
 
-	// Read config eagerly, for convenience, even though we may not need it.
-	// TODO: Wait until needed? Ignore error?
-	config, err := readConfig()
-	if err != nil {
-		return errors.Wrap(err, "reading Travis config file")
+	var err error
+	if err = c.configureTokenAndEndpoint(); err != nil {
+		return err
 	}
 
-	// If we're given an endpoint, use it. Otherwise, use a default.
-	if c.endpoint == "" {
-		c.endpoint = defaultEndpoint(config)
-	}
-
-	// If we're given a token, use it.
-	// Otherwise, if we're given a GitHub token, try to exchange it. Fail if we can't.
-	// Otherwise, look for a default. Fail if we can't find one.
-	if c.token == "" {
-		if c.githubToken != "" {
-			c.token, err = travisTokenFromGitHubToken(c.githubToken, c.endpoint)
-			if err != nil {
-				return err
-			}
-
-			c.githubToken = "" // No need to keep this around.
-		} else {
-			c.token = storedToken(config, c.endpoint)
+	// If we have a GitHub access token, get a Travis token from it.
+	if c.githubToken != "" {
+		c.token, err = travisTokenFromGitHubToken(c.githubToken, c.endpoint)
+		if err != nil {
+			return err
 		}
-	}
 
-	if c.token == "" {
-		return errors.New("no access token provided")
+		c.githubToken = "" // No need to keep this around.
 	}
 
 	return c
