@@ -125,26 +125,26 @@ func (c *Client) configureTokenAndEndpoint() error {
 	return nil
 }
 
-func NewClient(options ...Option) interface{} {
-	c := Client{}
+func NewClient(options ...Option) (*Client, error) {
+	c := &Client{}
 	for _, option := range options {
-		option(&c)
+		option(c)
 	}
 
 	var err error
 	if err = c.configureTokenAndEndpoint(); err != nil {
-		return err
+		return nil, err
 	}
 
 	// If we have a GitHub access token, get a Travis token from it.
 	if c.githubToken != "" {
 		c.token, err = travisTokenFromGitHubToken(c.githubToken, c.endpoint)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		c.githubToken = "" // No need to keep this around.
 	}
 
-	return c
+	return c, nil
 }
