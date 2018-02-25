@@ -33,7 +33,6 @@ func configPath() (string, error) {
 	return path.Join(currentUser.HomeDir, ".travis"), nil
 }
 
-// TODO: cache?
 func readConfig() (config, error) {
 	configPath, err := configPath()
 	if err != nil {
