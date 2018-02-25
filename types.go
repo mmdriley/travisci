@@ -3,12 +3,11 @@ package travisci
 // https://developer.travis-ci.com/explore/#explorer
 
 type APIObject struct {
-	Type           string      `json:"@type"`
-	HREF           string      `json:"@href"`
-	Representation string      `json:"@representation"`
-	Pagination     *Pagination `json:"@pagination"`
-
-	Permissions map[string]bool `json:"@permissions"`
+	Type           string          `json:"@type"`
+	HREF           string          `json:"@href"`
+	Representation string          `json:"@representation"`
+	Pagination     *Pagination     `json:"@pagination"`
+	Permissions    map[string]bool `json:"@permissions"`
 }
 
 type Pagination struct {
