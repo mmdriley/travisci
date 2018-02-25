@@ -10,19 +10,6 @@ import (
 
 /*
 
-recall our options progression is:
-
-endpoint:
-1. passed to constructor
-2. TRAVIS_ENDPOINT
-3. default_endpoint in config
-4. travis.org
-
-token:
-1. passed to constructor as Travis or GitHub token
-2. TRAVIS_TOKEN
-3. access_token in config -- *depends on endpoint!*
-
 TODO for client:
 -H "Travis-API-Version: 3"
 -H "Content-Type: application/json"
@@ -37,7 +24,7 @@ var (
 type Client struct {
 	endpoint string
 
-	// If githubToken is set and token isn't, we'll hit endpoint to exchange.
+	// If githubToken is set, we'll exchange it to get token.
 	githubToken string
 	token       string
 }
