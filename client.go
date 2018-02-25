@@ -34,6 +34,9 @@ type Option func(*Client)
 func AccessToken(token string) Option {
 	return func(c *Client) {
 		c.token = token
+
+		// Overwrites an existing GitHub token.
+		c.githubToken = ""
 	}
 }
 
