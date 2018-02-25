@@ -103,7 +103,7 @@ func (c *Client) configureTokenAndEndpoint() error {
 
 	if c.token == "" {
 		if endpointConfig, ok := config.Endpoints[c.endpoint]; ok {
-			c.endpoint = endpointConfig.AccessToken
+			c.token = endpointConfig.AccessToken
 		}
 	}
 
