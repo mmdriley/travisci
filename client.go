@@ -38,8 +38,6 @@ func AccessToken(token string) Option {
 
 	return func(c *Client) {
 		c.token = token
-
-		// Overwrites an existing GitHub token.
 		c.githubToken = ""
 	}
 }
@@ -52,7 +50,8 @@ func GitHubAccessToken(token string) Option {
 	return func(c *Client) {
 		c.githubToken = token
 
-		// Set token so we know it's configured. This value will be overwritten.
+		// Set token to a non-empty value that we'll overwrite later.
+		// This way we won't try to read a token e.g. from config.
 		c.token = "github"
 	}
 }
