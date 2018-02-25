@@ -7,5 +7,5 @@ import (
 )
 
 func main() {
-	fmt.Printf("%+v\n", travisci.Client(travisci.ClientOptions{}))
+	fmt.Printf("%+v\n", travisci.NewClient())
 }
