@@ -6,16 +6,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
-
-/*
-
-TODO for client:
--H "Travis-API-Version: 3"
--H "Content-Type: application/json"
-
-*/
-
 var (
 	orgURI = "https://api.travis-ci.org/"
 	proURI = "https://api.travis-ci.com/"
@@ -29,6 +19,7 @@ type Client struct {
 	token       string
 }
 
+// https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
 type Option func(*Client)
 
 func AccessToken(token string) Option {
