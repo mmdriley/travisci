@@ -1,6 +1,9 @@
 package travisci
 
 import (
+	"encoding/json"
+	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/pkg/errors"
@@ -12,7 +15,8 @@ var (
 )
 
 type Client struct {
-	endpoint string
+	endpoint    string
+	endpointURL *url.URL
 
 	// If githubToken is set, we'll exchange it to get token.
 	githubToken string
@@ -127,6 +131,11 @@ func NewClient(options ...Option) (*Client, error) {
 		return nil, err
 	}
 
+	c.endpointURL, err = url.Parse(c.endpoint)
+	if err != nil {
+		return nil, errors.Wrapf(err, "can't parse endpoint URL %s", c.endpoint)
+	}
+
 	// If we have a GitHub access token, get a Travis token from it.
 	if c.githubToken != "" {
 		c.token, err = travisTokenFromGitHubToken(c.githubToken, c.endpoint)
@@ -138,4 +147,48 @@ func NewClient(options ...Option) (*Client, error) {
 	}
 
 	return c, nil
+}
+
+func (c *Client) newRequest(method, path string) (*http.Request, error) {
+	pathURL, err := url.Parse(path)
+	if err != nil {
+		// This is a library bug
+		panic(errors.Errorf("can't parse path %s as URL", path))
+	}
+
+	url := c.endpointURL.ResolveReference(pathURL)
+
+	req, err := http.NewRequest(method, url.String(), nil)
+	if err != nil {
+		return nil, errors.Wrapf(err, "can't create request to %s", url.String())
+	}
+
+	req.Header.Add("Travis-API-Version", "3")
+	req.Header.Add("Authorization", "token "+c.token)
+
+	return req, nil
+}
+
+func (c *Client) getJSON(path string, output interface{}) error {
+	req, err := c.newRequest("GET", path)
+	if err != nil {
+		return errors.Wrapf(err, "creating request")
+	}
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return errors.Wrapf(err, "making request")
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		return errors.New(res.Status)
+	}
+
+	err = json.NewDecoder(res.Body).Decode(output)
+	if err != nil {
+		return errors.Wrapf(err, "decoding response as JSON")
+	}
+
+	return nil
 }
