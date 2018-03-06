@@ -192,3 +192,35 @@ func (c *Client) getJSON(path string, output interface{}) error {
 
 	return nil
 }
+
+func (c *Client) CurrentUser() (*User, error) {
+	var user User
+	err := c.getJSON("user", &user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+// todo: pagination
+
+func (c *Client) EnvVarsForRepository(repositorySlug string) (*EnvVars, error) {
+	var envvars EnvVars
+	err := c.getJSON("repo/"+url.PathEscape(repositorySlug)+"/env_vars", &envvars)
+	if err != nil {
+		return nil, err
+	}
+
+	return &envvars, nil
+}
+
+func (c *Client) RepositoriesForCurrentUser() (*Repositories, error) {
+	var repos Repositories
+	err := c.getJSON("repos?limit=5", &repos)
+	if err != nil {
+		return nil, err
+	}
+
+	return &repos, nil
+}
