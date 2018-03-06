@@ -1,6 +1,7 @@
 package travisci
 
 // https://developer.travis-ci.com/explore/#explorer
+// https://developer.travis-ci.com/format
 
 type APIObject struct {
 	Type           string          `json:"@type"`
@@ -10,13 +11,23 @@ type APIObject struct {
 	Permissions    map[string]bool `json:"@permissions"`
 }
 
-type Pagination struct {
-	Count  int
-	Limit  int
+type Page struct {
+	HREF   string `json:"@href"`
 	Offset int
+	Limit  int
+}
+
+type Pagination struct {
+	Count  int // overall number of entries in the collection
+	Limit  int // maximum number of entries included in the current subset
+	Offset int // number of entries preceding the first entry of the subset
 
 	IsFirst bool `json:"is_first"`
 	IsLast  bool `json:"is_last"`
+
+	First *Page
+	Next  *Page
+	Last  *Page
 }
 
 type Repository struct {
